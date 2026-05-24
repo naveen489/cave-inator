@@ -285,6 +285,11 @@ void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& output
     
     offlineEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
     
+    // Snap all tap gains/delays to their targets immediately so the full
+    // delay effect is heard from the very first exported sample, bypassing
+    // the slow smoothing ramp that is designed for live real-time use.
+    offlineEngine.snapParameters();
+    
     juce::AudioBuffer<float> buffer(2, 512);
     juce::int64 totalSamples = reader->lengthInSamples;
     juce::int64 tailSamples = static_cast<juce::int64>(5.0 * reader->sampleRate); // 5 sec tail
@@ -302,6 +307,8 @@ void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& output
             reader->read(&buffer, 0, samplesToRead, currentSample, true, true);
         }
         
+        // Re-apply parameters each block so instability/mutation keep evolving
+        offlineEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
         offlineEngine.process(buffer);
         writer->writeFromAudioSampleBuffer(buffer, 0, numSamples);
         currentSample += numSamples;

@@ -296,6 +296,15 @@ float MultiTapEngine::getInterpolatedSample(int channel, float delayInSamples)
     return masterDelayBuffer[channel][index1] * (1.0f - frac) + masterDelayBuffer[channel][index2] * frac;
 }
 
+void MultiTapEngine::snapParameters()
+{
+    for (auto& tap : taps)
+    {
+        tap.currentGain = tap.targetGain;
+        tap.currentDelaySamples = tap.targetDelaySamples;
+    }
+}
+
 void MultiTapEngine::process(juce::AudioBuffer<float>& buffer)
 {
     const int numChannels = buffer.getNumChannels();

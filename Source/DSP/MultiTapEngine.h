@@ -67,6 +67,11 @@ public:
                           float decay, float width, float ghost, float mix);
 
     void process(juce::AudioBuffer<float>& buffer);
+    
+    // Instantly snaps all tap smoothed values to their targets.
+    // Call this after updateParameters() for offline/export use
+    // to avoid the slow gain/delay ramp-up that is designed for live use.
+    void snapParameters();
 
 private:
     double sampleRate = 44100.0;
