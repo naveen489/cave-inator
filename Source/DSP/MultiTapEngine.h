@@ -76,7 +76,8 @@ private:
     juce::AudioBuffer<float> wetBuffer;
     juce::AudioBuffer<float> reverbBuffer;
     
-    int samplesSinceLastUpdate = 0;
+    // Initialize to max so the very first updateParameters() call always configures the taps
+    int samplesSinceLastUpdate = std::numeric_limits<int>::max();
     int updateIntervalSamples = 4410;
     
     juce::Random random;
