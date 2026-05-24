@@ -29,7 +29,7 @@ The custom eerie UI provides the following controls:
 - **Density**: Adjusts the number of active delay taps (echoes) bouncing around the cave.
 - **Diffusion**: Adjusts how quickly the echoes smear into a continuous reverb wash.
 - **Darkness**: A low-pass filter that rolls off high frequencies for a muddier, deeper underground tone.
-- **Decay**: Controls the feedback amount—how long the echoes continue to bounce.
+- **Decay**: Controls the feedback amount-how long the echoes continue to bounce.
 - **Width**: Adjusts the stereo spread of the reflections.
 - **Ghost**: Occasionally spawns a "ghost reflection" pushed far out in time and unpredictably panned.
 - **Mix**: Blends between the pure dry original signal and the fully wet cave environment (reverberated original + reverberated echoes).
