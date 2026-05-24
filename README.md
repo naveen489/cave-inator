@@ -4,6 +4,12 @@
 
 **cave-inator** is an experimental standalone audio application built with JUCE that applies a haunting, unpredictable "Eerie Cave" delay and reverb effect to your audio files. Instead of a traditional rhythmic delay, it utilizes a multi-tap delay engine with probabilistic pitch mutations, deep sub-octave shifts, and a massive algorithmic reverb tail to place your sound deep within a terrifying, echoing cavern.
 
+## Download
+
+> **[⬇️ Download the latest release (cave-inator.exe)](https://github.com/Naveen489/cave-inator/releases/latest)**
+
+No installation required — just download and run. Requires **Windows 10/11 (64-bit)**.
+
 ## Features
 
 - **Integrated Audio Player**: Load `.wav` or `.mp3` files directly into the standalone app and instantly hear them processed.
