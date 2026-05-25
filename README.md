@@ -8,7 +8,7 @@
 
 > **[⬇️ Download the latest release (cave-inator.exe)](https://github.com/Naveen489/cave-inator/releases/latest)**
 
-No installation required — just download and run. Requires **Windows 10/11 (64-bit)**.
+No installation required - just download and run. Requires **Windows 10/11 (64-bit)**.
 
 ## Features
 
