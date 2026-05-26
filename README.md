@@ -6,7 +6,7 @@
 
 ## Demo
 
-https://github.com/Naveen489/cave-inator/assets/caveinator_demo.mp4
+https://github.com/Naveen489/cave-inator/blob/main/caveinator_demo.mp4
 
 ## Download
 
