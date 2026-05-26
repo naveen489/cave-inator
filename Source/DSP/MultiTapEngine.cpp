@@ -385,9 +385,11 @@ void MultiTapEngine::process(juce::AudioBuffer<float>& buffer)
         wetBuffer.setSample(0, sample, wetL);
         wetBuffer.setSample(1, sample, wetR);
         
-        // Feed the echoes AND the original dry input into the reverb buffer
-        reverbBuffer.setSample(0, sample, wetL + inputL);
-        reverbBuffer.setSample(1, sample, wetR + inputR);
+        // Only feed the echo taps into the reverb — NOT the raw dry input.
+        // This ensures the dry signal stays clean when effects are turned down.
+        // The cave reverb will still bloom naturally from the echo taps.
+        reverbBuffer.setSample(0, sample, wetL);
+        reverbBuffer.setSample(1, sample, wetR);
     }
     
     // Process the accumulated reverb input through the massive cave reverb.
