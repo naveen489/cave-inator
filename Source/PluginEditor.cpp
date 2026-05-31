@@ -180,25 +180,29 @@ void EerieCaveDelayAudioProcessorEditor::paint (juce::Graphics& g)
 
 void EerieCaveDelayAudioProcessorEditor::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    auto fullBounds = getLocalBounds();
     
-    // Reserve top for title
-    area.removeFromTop(60);
+    // Title takes the top 60px
+    fullBounds.removeFromTop(60);
     
-    // Batmanize strip (90px): BPM/Sync on the left, Batmanize knob on the right
-    auto batStrip = area.removeFromTop(90);
+    // Batmanize strip is exactly the next 90px (matching the paint method)
+    auto batStrip = fullBounds.removeFromTop(90);
     
     // Batmanize knob — far right of the strip
     auto batKnobArea = batStrip.removeFromRight(120);
+    batKnobArea.removeFromBottom(8); // Padding so the text doesn't sit on the bottom edge
     batmanizeLabel.setBounds(batKnobArea.removeFromBottom(24));
-    batmanizeSlider.setBounds(batKnobArea.reduced(8));
+    batmanizeSlider.setBounds(batKnobArea.reduced(6));
     
     // BPM + Sync — left side of the strip, vertically centred
-    auto bpmArea = batStrip.removeFromLeft(240).withSizeKeepingCentre(240, 30);
+    auto bpmArea = batStrip.withTrimmedLeft(10).removeFromLeft(240).withSizeKeepingCentre(240, 30);
     bpmLabel.setBounds(bpmArea.removeFromLeft(40));
     bpmEditor.setBounds(bpmArea.removeFromLeft(60).reduced(2, 0));
     bpmArea.removeFromLeft(8);
     syncButton.setBounds(bpmArea.removeFromLeft(70).reduced(0, 0));
+    
+    // The remaining area for the main knobs and transport (add 10px margin)
+    auto area = fullBounds.reduced(10);
     
     // Transport bar at the bottom
     auto transportArea = area.removeFromBottom(80);
