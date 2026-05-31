@@ -4,7 +4,7 @@
 EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCaveDelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize (800, 500); // Batmanize strip contains BPM row, no extra row needed
+    setSize (800, 440); // Title moved into the strip, saving 60px height
 
     setupSlider(caveSizeSlider, caveSizeLabel, "Cave Size", caveSizeAttachment, "CAVE_SIZE");
     setupSlider(instabilitySlider, instabilityLabel, "Instability", instabilityAttachment, "INSTABILITY");
@@ -166,26 +166,24 @@ void EerieCaveDelayAudioProcessorEditor::paint (juce::Graphics& g)
     g.setGradientFill(bgGrad);
     g.fillAll();
 
-    g.setColour(juce::Colours::darkseagreen.withAlpha(0.6f));
-    g.setFont(30.0f);
-    g.drawFittedText("cave-inator", getLocalBounds().removeFromTop(60), juce::Justification::centred, 1);
-    
-    // Batmanize strip: subtle gold-tinted background
-    auto batStrip = getLocalBounds().removeFromTop(60 + 90).removeFromBottom(90);
+    // Header strip (top 90px): subtle gold-tinted background
+    auto batStrip = getLocalBounds().removeFromTop(90);
     g.setColour(juce::Colour(0xff1a1508).withAlpha(0.6f));
     g.fillRect(batStrip);
     g.setColour(juce::Colours::goldenrod.withAlpha(0.15f));
     g.drawRect(batStrip, 1);
+    
+    // Title in the centre of the strip
+    g.setColour(juce::Colours::darkseagreen.withAlpha(0.6f));
+    g.setFont(30.0f);
+    g.drawFittedText("cave-inator", batStrip, juce::Justification::centred, 1);
 }
 
 void EerieCaveDelayAudioProcessorEditor::resized()
 {
     auto fullBounds = getLocalBounds();
     
-    // Title takes the top 60px
-    fullBounds.removeFromTop(60);
-    
-    // Batmanize strip is exactly the next 90px (matching the paint method)
+    // Header strip is the top 90px
     auto batStrip = fullBounds.removeFromTop(90);
     
     // Batmanize knob — far right of the strip
