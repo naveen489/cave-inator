@@ -22,6 +22,8 @@ No installation required - just download and run. Requires **Windows 10/11 (64-b
 - **Probabilistic Pitch Mutation**: Delay echoes randomly shift in pitch, heavily biased towards deep, rumbling sub-octaves, eerie fifths, and dissonant microtones. Rare upward pitch shifts are heavily attenuated to create distant, ghostly whispers.
 - **Massive Cave Reverb**: An algorithmic reverb processor smears individual echoes into a lush, dark wash. The original dry audio is also fed into the reverb to ensure the entire sound sits inside the space.
 - **Stereo Spatialization**: True mono-to-stereo mapping distributes the echoes naturally across the stereo field based on the "Width" parameter.
+- **Tempo Sync**: Specify a BPM and toggle the Sync button to lock the cave's fundamental delay times to musical subdivisions, ensuring the chaotic echoes remain rhythmically tied to your track.
+- **Batmanize**: A special meta-parameter that brings the cave to life. Instead of overwriting your dialed-in settings, Batmanize introduces independent, slow-drifting oscillations to every parameter, making the cavern feel like a massive, breathing, geological organism.
 
 ## Parameter Guide
 
@@ -37,6 +39,10 @@ The custom eerie UI provides the following controls:
 - **Width**: Adjusts the stereo spread of the reflections.
 - **Ghost**: Occasionally spawns a "ghost reflection" pushed far out in time and unpredictably panned.
 - **Mix**: Blends between the pure dry original signal and the fully wet cave environment (reverberated original + reverberated echoes).
+
+**Special Controls:**
+- **BPM & Sync**: Allows you to set the tempo of your input audio and synchronize the underlying delay lines to musical subdivisions.
+- **Batmanize**: The golden knob. It adds "controlled unpredictability" by modulating your existing settings via independent, slow-drifting modulation sources (smoothed random/Perlin drift) rather than synchronized LFOs. Turn this up to make the space feel darker, more cinematic, slightly unpredictable, and subtly alive.
 
 ## How to Use
 
