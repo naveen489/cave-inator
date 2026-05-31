@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "DSP/MultiTapEngine.h"
+#include "DSP/BatmanizeModulator.h"
 
 class EerieCaveDelayAudioProcessor : public juce::AudioProcessor
 {
@@ -69,6 +70,7 @@ private:
     juce::AudioTransportSource transportSource;
     
     MultiTapEngine multiTapEngine;
+    BatmanizeModulator batmanizeModulator;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EerieCaveDelayAudioProcessor)
 };

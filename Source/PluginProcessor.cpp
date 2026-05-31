@@ -35,6 +35,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout EerieCaveDelayAudioProcessor
     params.push_back(std::make_unique<juce::AudioParameterFloat>("WIDTH", "Width", 0.0f, 1.0f, 0.8f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("GHOST", "Ghost Reflections", 0.0f, 1.0f, 0.2f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("MIX", "Mix", 0.0f, 1.0f, 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("BATMANIZE", "Batmanize", 0.0f, 1.0f, 0.0f));
 
     return { params.begin(), params.end() };
 }
@@ -107,6 +108,7 @@ void EerieCaveDelayAudioProcessor::prepareToPlay (double sampleRate, int samples
     spec.numChannels = getTotalNumOutputChannels();
     
     multiTapEngine.prepare(spec);
+    batmanizeModulator.prepare(sampleRate);
     transportSource.prepareToPlay(samplesPerBlock, sampleRate);
 }
 
@@ -157,19 +159,31 @@ void EerieCaveDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
         transportSource.getNextAudioBlock(info);
     }
         
-    // Update parameters
-    float caveSize = apvts.getRawParameterValue("CAVE_SIZE")->load();
+    // Read anchor values from APVTS
+    float caveSize    = apvts.getRawParameterValue("CAVE_SIZE")->load();
     float instability = apvts.getRawParameterValue("INSTABILITY")->load();
-    float mutation = apvts.getRawParameterValue("MUTATION")->load();
-    float density = apvts.getRawParameterValue("DENSITY")->load();
-    float diffusion = apvts.getRawParameterValue("DIFFUSION")->load();
-    float darkness = apvts.getRawParameterValue("DARKNESS")->load();
-    float decay = apvts.getRawParameterValue("DECAY")->load();
-    float width = apvts.getRawParameterValue("WIDTH")->load();
-    float ghost = apvts.getRawParameterValue("GHOST")->load();
-    float mix = apvts.getRawParameterValue("MIX")->load();
+    float mutation    = apvts.getRawParameterValue("MUTATION")->load();
+    float density     = apvts.getRawParameterValue("DENSITY")->load();
+    float diffusion   = apvts.getRawParameterValue("DIFFUSION")->load();
+    float darkness    = apvts.getRawParameterValue("DARKNESS")->load();
+    float decay       = apvts.getRawParameterValue("DECAY")->load();
+    float width       = apvts.getRawParameterValue("WIDTH")->load();
+    float ghost       = apvts.getRawParameterValue("GHOST")->load();
+    float mix         = apvts.getRawParameterValue("MIX")->load();
+    float batman      = apvts.getRawParameterValue("BATMANIZE")->load();
     
-    multiTapEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
+    // Tick Batmanize modulators and apply modulation around anchor values
+    batmanizeModulator.tick(buffer.getNumSamples());
+    auto& bm = batmanizeModulator;
+    float modInstability = BatmanizeModulator::mod(instability, bm.instability.get(), 0.20f, batman);
+    float modDensity     = BatmanizeModulator::mod(density,     bm.density.get(),     0.10f, batman);
+    float modMutation    = BatmanizeModulator::mod(mutation,    bm.mutation.get(),    0.25f, batman);
+    float modGhost       = BatmanizeModulator::modGhost(ghost,  bm.ghost.get(),              batman);
+    float modWidth       = BatmanizeModulator::mod(width,       bm.width.get(),       0.15f, batman);
+    float modDarkness    = BatmanizeModulator::mod(darkness,    bm.darkness.get(),    0.10f, batman);
+    float modDecay       = BatmanizeModulator::mod(decay,       bm.decay.get(),       0.08f, batman);
+    
+    multiTapEngine.updateParameters(caveSize, modInstability, modMutation, modDensity, diffusion, modDarkness, modDecay, modWidth, modGhost, mix);
     multiTapEngine.setBPMSync(bpmSyncEnabled.load(), bpmValue.load());
 
     multiTapEngine.process(buffer);
@@ -286,17 +300,23 @@ void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& output
     offlineEngine.prepare(spec);
     offlineEngine.setBPMSync(bpmSyncEnabled.load(), bpmValue.load());
     
-    float caveSize = apvts.getRawParameterValue("CAVE_SIZE")->load();
-    float instability = apvts.getRawParameterValue("INSTABILITY")->load();
-    float mutation = apvts.getRawParameterValue("MUTATION")->load();
-    float density = apvts.getRawParameterValue("DENSITY")->load();
-    float diffusion = apvts.getRawParameterValue("DIFFUSION")->load();
-    float darkness = apvts.getRawParameterValue("DARKNESS")->load();
-    float decay = apvts.getRawParameterValue("DECAY")->load();
-    float width = apvts.getRawParameterValue("WIDTH")->load();
-    float ghost = apvts.getRawParameterValue("GHOST")->load();
-    float mix = apvts.getRawParameterValue("MIX")->load();
+    // Separate Batmanize modulator for the offline render (starts fresh)
+    BatmanizeModulator offlineBatmanize;
+    offlineBatmanize.prepare(spec.sampleRate);
+    float batman = apvts.getRawParameterValue("BATMANIZE")->load();
     
+    float caveSize    = apvts.getRawParameterValue("CAVE_SIZE")->load();
+    float instability = apvts.getRawParameterValue("INSTABILITY")->load();
+    float mutation    = apvts.getRawParameterValue("MUTATION")->load();
+    float density     = apvts.getRawParameterValue("DENSITY")->load();
+    float diffusion   = apvts.getRawParameterValue("DIFFUSION")->load();
+    float darkness    = apvts.getRawParameterValue("DARKNESS")->load();
+    float decay       = apvts.getRawParameterValue("DECAY")->load();
+    float width       = apvts.getRawParameterValue("WIDTH")->load();
+    float ghost       = apvts.getRawParameterValue("GHOST")->load();
+    float mix         = apvts.getRawParameterValue("MIX")->load();
+    
+    // Initial update with base (un-modulated) parameters to configure taps
     offlineEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
     
     // Snap all tap gains/delays to their targets immediately so the full
@@ -321,8 +341,17 @@ void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& output
             reader->read(&buffer, 0, samplesToRead, currentSample, true, true);
         }
         
-        // Re-apply parameters each block so instability/mutation keep evolving
-        offlineEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
+        // Tick Batmanize and apply modulation around anchor values each block
+        offlineBatmanize.tick(numSamples);
+        auto& bm = offlineBatmanize;
+        float modInstability = BatmanizeModulator::mod(instability, bm.instability.get(), 0.20f, batman);
+        float modDensity     = BatmanizeModulator::mod(density,     bm.density.get(),     0.10f, batman);
+        float modMutation    = BatmanizeModulator::mod(mutation,    bm.mutation.get(),    0.25f, batman);
+        float modGhost       = BatmanizeModulator::modGhost(ghost,  bm.ghost.get(),              batman);
+        float modWidth       = BatmanizeModulator::mod(width,       bm.width.get(),       0.15f, batman);
+        float modDarkness    = BatmanizeModulator::mod(darkness,    bm.darkness.get(),    0.10f, batman);
+        float modDecay       = BatmanizeModulator::mod(decay,       bm.decay.get(),       0.08f, batman);
+        offlineEngine.updateParameters(caveSize, modInstability, modMutation, modDensity, diffusion, modDarkness, modDecay, modWidth, modGhost, mix);
         offlineEngine.process(buffer);
         writer->writeFromAudioSampleBuffer(buffer, 0, numSamples);
         currentSample += numSamples;

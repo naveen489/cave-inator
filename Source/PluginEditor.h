@@ -28,6 +28,7 @@ private:
     juce::Slider widthSlider;
     juce::Slider ghostSlider;
     juce::Slider mixSlider;
+    juce::Slider batmanizeSlider;
     
     // Labels
     juce::Label caveSizeLabel;
@@ -40,6 +41,7 @@ private:
     juce::Label widthLabel;
     juce::Label ghostLabel;
     juce::Label mixLabel;
+    juce::Label batmanizeLabel;
     
     // Attachments
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
@@ -53,6 +55,7 @@ private:
     std::unique_ptr<SliderAttachment> widthAttachment;
     std::unique_ptr<SliderAttachment> ghostAttachment;
     std::unique_ptr<SliderAttachment> mixAttachment;
+    std::unique_ptr<SliderAttachment> batmanizeAttachment;
     
     // File player UI
     juce::TextButton loadButton{"Load Audio File"};

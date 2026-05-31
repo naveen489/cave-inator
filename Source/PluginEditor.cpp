@@ -4,7 +4,7 @@
 EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCaveDelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize (800, 490); // Extra height for BPM bar
+    setSize (800, 540); // Extra height for Batmanize strip + BPM row
 
     setupSlider(caveSizeSlider, caveSizeLabel, "Cave Size", caveSizeAttachment, "CAVE_SIZE");
     setupSlider(instabilitySlider, instabilityLabel, "Instability", instabilityAttachment, "INSTABILITY");
@@ -16,6 +16,19 @@ EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCav
     setupSlider(widthSlider, widthLabel, "Width", widthAttachment, "WIDTH");
     setupSlider(ghostSlider, ghostLabel, "Ghost", ghostAttachment, "GHOST");
     setupSlider(mixSlider, mixLabel, "Mix", mixAttachment, "MIX");
+    
+    // Batmanize: special gold styling to mark it as a meta-parameter
+    batmanizeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    batmanizeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    batmanizeSlider.setColour(juce::Slider::thumbColourId, juce::Colours::goldenrod.withAlpha(0.9f));
+    batmanizeSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(0xff8b6914).withAlpha(0.7f));
+    batmanizeSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0xff1a1a24));
+    addAndMakeVisible(batmanizeSlider);
+    batmanizeLabel.setText("Batmanize", juce::dontSendNotification);
+    batmanizeLabel.setJustificationType(juce::Justification::centred);
+    batmanizeLabel.setColour(juce::Label::textColourId, juce::Colours::goldenrod);
+    addAndMakeVisible(batmanizeLabel);
+    batmanizeAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "BATMANIZE", batmanizeSlider);
     
     addAndMakeVisible(loadButton);
     addAndMakeVisible(playStopButton);
@@ -153,9 +166,23 @@ void EerieCaveDelayAudioProcessorEditor::paint (juce::Graphics& g)
     g.setGradientFill(bgGrad);
     g.fillAll();
 
-    g.setColour (juce::Colours::darkseagreen.withAlpha(0.6f));
-    g.setFont (30.0f);
-    g.drawFittedText ("cave-inator", getLocalBounds().removeFromTop(60), juce::Justification::centred, 1);
+    g.setColour(juce::Colours::darkseagreen.withAlpha(0.6f));
+    g.setFont(30.0f);
+    g.drawFittedText("cave-inator", getLocalBounds().removeFromTop(60), juce::Justification::centred, 1);
+    
+    // Batmanize strip: subtle gold-tinted background
+    auto batStrip = getLocalBounds().removeFromTop(60 + 90).removeFromBottom(90);
+    g.setColour(juce::Colour(0xff1a1508).withAlpha(0.6f));
+    g.fillRect(batStrip);
+    g.setColour(juce::Colours::goldenrod.withAlpha(0.15f));
+    g.drawRect(batStrip, 1);
+    
+    // Tooltip text inside the Batmanize strip
+    g.setColour(juce::Colours::goldenrod.withAlpha(0.35f));
+    g.setFont(11.0f);
+    auto tooltipArea = batStrip.removeFromRight(batStrip.getWidth() - 120);
+    g.drawFittedText("Makes the cave increasingly alive, unstable,\nand suspiciously bat-filled.",
+                     tooltipArea.reduced(10, 0), juce::Justification::centredLeft, 2);
 }
 
 void EerieCaveDelayAudioProcessorEditor::resized()
@@ -165,8 +192,14 @@ void EerieCaveDelayAudioProcessorEditor::resized()
     // Reserve top for title
     area.removeFromTop(60);
     
-    // BPM sync row just above transport bar
-    auto bpmRow = area.removeFromBottom(35);
+    // Batmanize strip (90px) — knob on left, tooltip fills the rest
+    auto batStrip = area.removeFromTop(90);
+    auto batKnobArea = batStrip.removeFromLeft(120);
+    batmanizeLabel.setBounds(batKnobArea.removeFromBottom(24));
+    batmanizeSlider.setBounds(batKnobArea.reduced(8));
+    
+    // BPM sync row
+    auto bpmRow = area.removeFromTop(35);
     bpmRow.removeFromLeft(10);
     bpmLabel.setBounds(bpmRow.removeFromLeft(40));
     bpmEditor.setBounds(bpmRow.removeFromLeft(55).reduced(0, 6));
