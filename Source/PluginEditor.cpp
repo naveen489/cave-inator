@@ -4,7 +4,7 @@
 EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCaveDelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize (800, 540); // Extra height for Batmanize strip + BPM row
+    setSize (800, 500); // Batmanize strip contains BPM row, no extra row needed
 
     setupSlider(caveSizeSlider, caveSizeLabel, "Cave Size", caveSizeAttachment, "CAVE_SIZE");
     setupSlider(instabilitySlider, instabilityLabel, "Instability", instabilityAttachment, "INSTABILITY");
@@ -101,16 +101,16 @@ EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCav
     addAndMakeVisible(syncButton);
     
     bpmLabel.setText("BPM", juce::dontSendNotification);
-    bpmLabel.setColour(juce::Label::textColourId, juce::Colours::darkseagreen);
+    bpmLabel.setColour(juce::Label::textColourId, juce::Colours::goldenrod);
     bpmLabel.setJustificationType(juce::Justification::centredRight);
     
     bpmEditor.setInputRestrictions(3, "0123456789");
     bpmEditor.setText(juce::String((int)audioProcessor.getBPM()), false);
     bpmEditor.setJustification(juce::Justification::centred);
-    bpmEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff1a222c));
-    bpmEditor.setColour(juce::TextEditor::textColourId, juce::Colours::ghostwhite);
-    bpmEditor.setColour(juce::TextEditor::outlineColourId, juce::Colours::darkseagreen.withAlpha(0.4f));
-    bpmEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::darkseagreen);
+    bpmEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff241d08));
+    bpmEditor.setColour(juce::TextEditor::textColourId, juce::Colours::goldenrod);
+    bpmEditor.setColour(juce::TextEditor::outlineColourId, juce::Colours::goldenrod.withAlpha(0.4f));
+    bpmEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::goldenrod);
     bpmEditor.onReturnKey  = [this] {
         auto val = bpmEditor.getText().getFloatValue();
         if (val >= 20.0f && val <= 300.0f)
@@ -125,10 +125,10 @@ EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCav
     };
     
     syncButton.setClickingTogglesState(true);
-    syncButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1a222c));
-    syncButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::darkseagreen.withAlpha(0.5f));
-    syncButton.setColour(juce::TextButton::textColourOffId, juce::Colours::darkseagreen);
-    syncButton.setColour(juce::TextButton::textColourOnId, juce::Colours::ghostwhite);
+    syncButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff241d08));
+    syncButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::goldenrod.withAlpha(0.5f));
+    syncButton.setColour(juce::TextButton::textColourOffId, juce::Colours::goldenrod);
+    syncButton.setColour(juce::TextButton::textColourOnId, juce::Colour(0xff1a1508));
     syncButton.onClick = [this] {
         audioProcessor.setBPMSyncEnabled(syncButton.getToggleState());
     };
@@ -176,13 +176,6 @@ void EerieCaveDelayAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillRect(batStrip);
     g.setColour(juce::Colours::goldenrod.withAlpha(0.15f));
     g.drawRect(batStrip, 1);
-    
-    // Tooltip text inside the Batmanize strip
-    g.setColour(juce::Colours::goldenrod.withAlpha(0.35f));
-    g.setFont(11.0f);
-    auto tooltipArea = batStrip.removeFromRight(batStrip.getWidth() - 120);
-    g.drawFittedText("Makes the cave increasingly alive, unstable,\nand suspiciously bat-filled.",
-                     tooltipArea.reduced(10, 0), juce::Justification::centredLeft, 2);
 }
 
 void EerieCaveDelayAudioProcessorEditor::resized()
@@ -192,19 +185,20 @@ void EerieCaveDelayAudioProcessorEditor::resized()
     // Reserve top for title
     area.removeFromTop(60);
     
-    // Batmanize strip (90px) — knob on left, tooltip fills the rest
+    // Batmanize strip (90px): BPM/Sync on the left, Batmanize knob on the right
     auto batStrip = area.removeFromTop(90);
-    auto batKnobArea = batStrip.removeFromLeft(120);
+    
+    // Batmanize knob — far right of the strip
+    auto batKnobArea = batStrip.removeFromRight(120);
     batmanizeLabel.setBounds(batKnobArea.removeFromBottom(24));
     batmanizeSlider.setBounds(batKnobArea.reduced(8));
     
-    // BPM sync row
-    auto bpmRow = area.removeFromTop(35);
-    bpmRow.removeFromLeft(10);
-    bpmLabel.setBounds(bpmRow.removeFromLeft(40));
-    bpmEditor.setBounds(bpmRow.removeFromLeft(55).reduced(0, 6));
-    bpmRow.removeFromLeft(8);
-    syncButton.setBounds(bpmRow.removeFromLeft(70).reduced(0, 6));
+    // BPM + Sync — left side of the strip, vertically centred
+    auto bpmArea = batStrip.removeFromLeft(240).withSizeKeepingCentre(240, 30);
+    bpmLabel.setBounds(bpmArea.removeFromLeft(40));
+    bpmEditor.setBounds(bpmArea.removeFromLeft(60).reduced(2, 0));
+    bpmArea.removeFromLeft(8);
+    syncButton.setBounds(bpmArea.removeFromLeft(70).reduced(0, 0));
     
     // Transport bar at the bottom
     auto transportArea = area.removeFromBottom(80);
