@@ -64,6 +64,11 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     std::unique_ptr<juce::FileChooser> exportChooser;
     
+    // BPM Sync UI
+    juce::Label bpmLabel;
+    juce::TextEditor bpmEditor;
+    juce::TextButton syncButton { "Sync" };
+    
     void setupSlider(juce::Slider& slider, juce::Label& label, const juce::String& text, std::unique_ptr<SliderAttachment>& attachment, const juce::String& paramId);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EerieCaveDelayAudioProcessorEditor)

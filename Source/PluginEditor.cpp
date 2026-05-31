@@ -4,7 +4,7 @@
 EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCaveDelayAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize (800, 450); // Increased height for file player
+    setSize (800, 490); // Extra height for BPM bar
 
     setupSlider(caveSizeSlider, caveSizeLabel, "Cave Size", caveSizeAttachment, "CAVE_SIZE");
     setupSlider(instabilitySlider, instabilityLabel, "Instability", instabilityAttachment, "INSTABILITY");
@@ -82,6 +82,44 @@ EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCav
         });
     };
     
+    // ---- BPM Sync UI ----
+    addAndMakeVisible(bpmLabel);
+    addAndMakeVisible(bpmEditor);
+    addAndMakeVisible(syncButton);
+    
+    bpmLabel.setText("BPM", juce::dontSendNotification);
+    bpmLabel.setColour(juce::Label::textColourId, juce::Colours::darkseagreen);
+    bpmLabel.setJustificationType(juce::Justification::centredRight);
+    
+    bpmEditor.setInputRestrictions(3, "0123456789");
+    bpmEditor.setText(juce::String((int)audioProcessor.getBPM()), false);
+    bpmEditor.setJustification(juce::Justification::centred);
+    bpmEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff1a222c));
+    bpmEditor.setColour(juce::TextEditor::textColourId, juce::Colours::ghostwhite);
+    bpmEditor.setColour(juce::TextEditor::outlineColourId, juce::Colours::darkseagreen.withAlpha(0.4f));
+    bpmEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colours::darkseagreen);
+    bpmEditor.onReturnKey  = [this] {
+        auto val = bpmEditor.getText().getFloatValue();
+        if (val >= 20.0f && val <= 300.0f)
+            audioProcessor.setBPM(val);
+    };
+    bpmEditor.onFocusLost = [this] {
+        auto val = bpmEditor.getText().getFloatValue();
+        if (val >= 20.0f && val <= 300.0f)
+            audioProcessor.setBPM(val);
+        else
+            bpmEditor.setText(juce::String((int)audioProcessor.getBPM()), false);
+    };
+    
+    syncButton.setClickingTogglesState(true);
+    syncButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1a222c));
+    syncButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::darkseagreen.withAlpha(0.5f));
+    syncButton.setColour(juce::TextButton::textColourOffId, juce::Colours::darkseagreen);
+    syncButton.setColour(juce::TextButton::textColourOnId, juce::Colours::ghostwhite);
+    syncButton.onClick = [this] {
+        audioProcessor.setBPMSyncEnabled(syncButton.getToggleState());
+    };
+    
     startTimerHz(30);
 }
 
@@ -126,6 +164,14 @@ void EerieCaveDelayAudioProcessorEditor::resized()
     
     // Reserve top for title
     area.removeFromTop(60);
+    
+    // BPM sync row just above transport bar
+    auto bpmRow = area.removeFromBottom(35);
+    bpmRow.removeFromLeft(10);
+    bpmLabel.setBounds(bpmRow.removeFromLeft(40));
+    bpmEditor.setBounds(bpmRow.removeFromLeft(55).reduced(0, 6));
+    bpmRow.removeFromLeft(8);
+    syncButton.setBounds(bpmRow.removeFromLeft(70).reduced(0, 6));
     
     // Transport bar at the bottom
     auto transportArea = area.removeFromBottom(80);

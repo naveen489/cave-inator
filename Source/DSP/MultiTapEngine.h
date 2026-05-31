@@ -72,9 +72,14 @@ public:
     // Call this after updateParameters() for offline/export use
     // to avoid the slow gain/delay ramp-up that is designed for live use.
     void snapParameters();
+    
+    // BPM sync: when enabled, Cave Size maps to musical note subdivisions at the given BPM
+    void setBPMSync(bool enabled, float bpm);
 
 private:
     double sampleRate = 44100.0;
+    bool bpmSyncEnabled = false;
+    float currentBPM = 120.0f;
     
     // Smoothing parameters to update reflection behavior every ~50-300ms    
     juce::dsp::Reverb caveReverb;

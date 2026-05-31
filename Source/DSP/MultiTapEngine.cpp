@@ -250,7 +250,20 @@ void MultiTapEngine::updateParameters(float caveSize, float instability, float m
                 taps[i].targetGain = 1.0f / (float)numActiveTaps;
                 
                 // Jitter target delay based on cave size and instability
-                float baseDelay = juce::jmap(caveSize, 0.0f, 1.0f, 100.0f, 2000.0f) * ((float)(i+1)/(float)numActiveTaps);
+                float baseDelay;
+                if (bpmSyncEnabled && currentBPM > 0.0f)
+                {
+                    // BPM sync: Cave Size sweeps note subdivisions (1/16 note to 2 bars)
+                    // std::pow(2, jmap(caveSize, -4, 3)) gives: 1/16, 1/8, 1/4, 1/2, 1, 2, 4, 8 quarter notes
+                    float quarterNoteMs = 60000.0f / currentBPM;
+                    float subdivMultiplier = std::pow(2.0f, juce::jmap(caveSize, 0.0f, 1.0f, -4.0f, 3.0f));
+                    baseDelay = quarterNoteMs * subdivMultiplier * ((float)(i+1) / (float)numActiveTaps);
+                }
+                else
+                {
+                    // Free mode: Cave Size maps linearly from 100ms to 2000ms
+                    baseDelay = juce::jmap(caveSize, 0.0f, 1.0f, 100.0f, 2000.0f) * ((float)(i+1) / (float)numActiveTaps);
+                }
                 float jitter = (random.nextFloat() * 2.0f - 1.0f) * instability * baseDelay * 0.2f;
                 float finalDelayMs = juce::jlimit(10.0f, (float)maxDelayTimeMs - 100.0f, baseDelay + jitter);
                 taps[i].targetDelaySamples = (finalDelayMs / 1000.0f) * sampleRate;
@@ -303,6 +316,12 @@ void MultiTapEngine::snapParameters()
         tap.currentGain = tap.targetGain;
         tap.currentDelaySamples = tap.targetDelaySamples;
     }
+}
+
+void MultiTapEngine::setBPMSync(bool enabled, float bpm)
+{
+    bpmSyncEnabled = enabled;
+    currentBPM = juce::jlimit(20.0f, 300.0f, bpm);
 }
 
 void MultiTapEngine::process(juce::AudioBuffer<float>& buffer)

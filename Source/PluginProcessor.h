@@ -51,9 +51,17 @@ public:
     double getPlaybackLength() const;
     
     void exportProcessedAudio(const juce::File& outputFile);
+    
+    // BPM sync
+    void setBPM(float bpm);
+    void setBPMSyncEnabled(bool enabled);
+    float getBPM() const { return bpmValue.load(); }
+    bool isBPMSyncEnabled() const { return bpmSyncEnabled.load(); }
 
 private:
     juce::File currentLoadedFile;
+    std::atomic<float> bpmValue { 120.0f };
+    std::atomic<bool>  bpmSyncEnabled { false };
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
     juce::AudioFormatManager formatManager;

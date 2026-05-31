@@ -170,6 +170,7 @@ void EerieCaveDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     float mix = apvts.getRawParameterValue("MIX")->load();
     
     multiTapEngine.updateParameters(caveSize, instability, mutation, density, diffusion, darkness, decay, width, ghost, mix);
+    multiTapEngine.setBPMSync(bpmSyncEnabled.load(), bpmValue.load());
 
     multiTapEngine.process(buffer);
 }
@@ -252,6 +253,18 @@ double EerieCaveDelayAudioProcessor::getPlaybackLength() const
     return transportSource.getLengthInSeconds();
 }
 
+void EerieCaveDelayAudioProcessor::setBPM(float bpm)
+{
+    bpmValue.store(juce::jlimit(20.0f, 300.0f, bpm));
+    multiTapEngine.setBPMSync(bpmSyncEnabled.load(), bpmValue.load());
+}
+
+void EerieCaveDelayAudioProcessor::setBPMSyncEnabled(bool enabled)
+{
+    bpmSyncEnabled.store(enabled);
+    multiTapEngine.setBPMSync(enabled, bpmValue.load());
+}
+
 void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& outputFile)
 {
     if (!currentLoadedFile.existsAsFile()) return;
@@ -271,6 +284,7 @@ void EerieCaveDelayAudioProcessor::exportProcessedAudio(const juce::File& output
     spec.maximumBlockSize = 512;
     spec.numChannels = 2;
     offlineEngine.prepare(spec);
+    offlineEngine.setBPMSync(bpmSyncEnabled.load(), bpmValue.load());
     
     float caveSize = apvts.getRawParameterValue("CAVE_SIZE")->load();
     float instability = apvts.getRawParameterValue("INSTABILITY")->load();
