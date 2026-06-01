@@ -7,6 +7,7 @@
 ## Demo
 
 https://github.com/Naveen489/cave-inator/blob/main/caveinator_demo.mp4
+*(Note: The demo video may feature an older version of the plugin.)*
 
 ## Download
 
