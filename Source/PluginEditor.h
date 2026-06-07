@@ -73,6 +73,9 @@ private:
     juce::TextButton syncButton { "Sync" };
     
     void setupSlider(juce::Slider& slider, juce::Label& label, const juce::String& text, std::unique_ptr<SliderAttachment>& attachment, const juce::String& paramId);
+    void updateCaveSizeSyncMode(bool syncOn);
+    static juce::String getCaveSizeSubdivisionName(double value);
+    bool syncModeActive = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EerieCaveDelayAudioProcessorEditor)
 };

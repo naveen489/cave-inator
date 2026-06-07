@@ -130,7 +130,9 @@ EerieCaveDelayAudioProcessorEditor::EerieCaveDelayAudioProcessorEditor (EerieCav
     syncButton.setColour(juce::TextButton::textColourOffId, juce::Colours::goldenrod);
     syncButton.setColour(juce::TextButton::textColourOnId, juce::Colour(0xff1a1508));
     syncButton.onClick = [this] {
-        audioProcessor.setBPMSyncEnabled(syncButton.getToggleState());
+        bool on = syncButton.getToggleState();
+        audioProcessor.setBPMSyncEnabled(on);
+        updateCaveSizeSyncMode(on);
     };
     
     startTimerHz(30);
@@ -157,6 +159,39 @@ void EerieCaveDelayAudioProcessorEditor::setupSlider(juce::Slider& slider, juce:
     addAndMakeVisible(label);
     
     attachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, paramId, slider);
+}
+
+juce::String EerieCaveDelayAudioProcessorEditor::getCaveSizeSubdivisionName(double value)
+{
+    // 8 discrete stops mapped evenly across 0..1
+    // The DSP uses pow(2, jmap(caveSize, 0,1, -4, 3)) giving multipliers:
+    //   0.0625 (1/16), 0.125 (1/8), 0.25 (1/4), 0.5 (1/2), 1 (1/1), 2 (2 bars), 4 (4 bars), 8 (8 bars)
+    constexpr int numStops = 8;
+    const char* names[] = { "1/16", "1/8", "1/4", "1/2", "1/1", "2 bars", "4 bars", "8 bars" };
+    int idx = juce::jlimit(0, numStops - 1, (int)std::round(value * (numStops - 1)));
+    return names[idx];
+}
+
+void EerieCaveDelayAudioProcessorEditor::updateCaveSizeSyncMode(bool syncOn)
+{
+    syncModeActive = syncOn;
+    if (syncOn)
+    {
+        // Snap to 8 discrete positions
+        constexpr int numStops = 8;
+        double interval = 1.0 / (numStops - 1);
+        caveSizeSlider.setRange(0.0, 1.0, interval);
+        // Snap current value to nearest stop
+        double snapped = std::round(caveSizeSlider.getValue() / interval) * interval;
+        caveSizeSlider.setValue(snapped, juce::sendNotificationSync);
+        caveSizeLabel.setText(getCaveSizeSubdivisionName(snapped), juce::dontSendNotification);
+    }
+    else
+    {
+        // Restore continuous mode
+        caveSizeSlider.setRange(0.0, 1.0, 0.0);
+        caveSizeLabel.setText("Cave Size", juce::dontSendNotification);
+    }
 }
 
 void EerieCaveDelayAudioProcessorEditor::paint (juce::Graphics& g)
@@ -260,4 +295,8 @@ void EerieCaveDelayAudioProcessorEditor::timerCallback()
             playStopButton.setButtonText("Play");
         }
     }
+    
+    // Update cave size label to show subdivision name when in sync mode
+    if (syncModeActive)
+        caveSizeLabel.setText(getCaveSizeSubdivisionName(caveSizeSlider.getValue()), juce::dontSendNotification);
 }
